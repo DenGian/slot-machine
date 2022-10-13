@@ -1,10 +1,10 @@
-import random  #
+import random  # Used to get a random value
 
 NO_NUMBER = "Please enter a number."
 
 MAX_LINES = 3  # global constant that is not going to change - max lines to bet on is now set to 3 - more dynamic program
-MAX_BET = 200  # global constant that is not going to change - max amount to bet is now set to 200
-MIN_BET = 10  # global constant that is not going to change - min amount to bet is now set to 10
+MAX_BET = 2000  # global constant that is not going to change - max amount to bet is now set to 200
+MIN_BET = 1  # global constant that is not going to change - min amount to bet is now set to 10
 
 ROWS = 3  # defining amount of rows
 COLS = 3  # defining amount of cols
@@ -16,7 +16,27 @@ symbol_count = {  # defining different symbols and the count of set symbols
     "♣︎︎": 6
 }
 
-def check_winnings(columns, lines, bet):
+symbol_value = {  # defining the value for each symbol
+    "♠︎": 6,  # in this case "♠︎" has the value of x6 multiplier
+    "♥︎": 4,
+    "♦︎": 3,
+    "♣︎︎": 2
+}
+
+def check_winnings(columns, lines, bet, values):
+    winnings = 0
+    winning_lines = []
+    for line in range(lines):  # getting all lines
+        symbol = columns[0][line]  # symbol to check in first column of the current row - all symbols need to be the same
+        for column in columns:  # loop through every single column
+            symbol_to_check = column[line]  # the symbol to check is the symbol of the current row
+            if symbol != symbol_to_check:  # check if symbols are NOT the same
+                break  # if they are NOT the same, break out - check the next line
+        else:
+            winnings += values[symbol] * bet  # if all symbols are the same, no break out and user won - multiplier symbol * bet of the user (bet of each line)
+            winning_lines.append(line + 1)  # +1 because of index, otherwise if line 1 wins it would say line 0
+
+    return winnings, winning_lines
 
 def get_slot_machine_spin(rows, cols, symbols):  # generating outcome of slot machine symbols - 3 parameters passing through function
     all_symbols = []  # making list for all symbols
@@ -59,7 +79,6 @@ def  deposit():  # function deposit - responsible for user input
             print(NO_NUMBER)  # prompt that shows up on screen if there was no input by user
     return amount
 
-
 def get_number_of_lines():
     while True:  # while loop that is set to true - continue to do function until break
         lines = input("Enter the number of lines to bet on (1-" + str(MAX_LINES) + "). ")  # prompt that comes up for user input - string concatenation
@@ -72,7 +91,6 @@ def get_number_of_lines():
         else:  # if there was NO input given by user
             print(NO_NUMBER)  # prompt that shows up on screen
     return lines
-
 
 def get_bet():
     while True:  # while loop that is set to true - continue to do function until break
@@ -87,9 +105,7 @@ def get_bet():
             print(NO_NUMBER)  # prompt that shows up on screen for the user
     return amount
 
-
-def main():  # function for rerunning the program
-    balance = deposit()
+def spin(balance):
     lines = get_number_of_lines()
     while True:
         bet = get_bet()
@@ -103,5 +119,20 @@ def main():  # function for rerunning the program
 
     slots = get_slot_machine_spin(ROWS, COLS, symbol_count)
     print_slot_machine(slots)
+    winnings, winning_lines = check_winnings(slots, lines, bet, symbol_value)
+    print(f"You won {winnings}.")
+    print(f"you won on lines:", *winning_lines)  # "*" is in this case the splat operator - pass every line from winning_lines list to print function
+    return winnings - total_bet
+
+def main():  # function for rerunning the program
+    balance = deposit()
+    while True:
+        print(f"current balance is ${balance}")
+        answer = input("Press enter to play (q to quit).")
+        if answer == "q":
+            break
+        balance += spin(balance)
+
+    print(f"You left with ${balance}")
 
 main()
